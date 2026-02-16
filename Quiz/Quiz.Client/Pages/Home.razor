@@ -1,0 +1,381 @@
+﻿@page "/"
+@rendermode InteractiveWebAssembly
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Web
+@inject HttpClient Http
+
+<PageTitle>Adam Asmaca</PageTitle>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-2">Adam Asmaca</h1>
+            <p class="text-muted mb-4">
+                Kelimeyi harf harf tahmin et. Yanlışta adam asılır, hak bitince kaybedersin.
+            </p>
+
+            @if (_isLoading)
+            {
+                <div class="alert alert-info">Veri yükleniyor...</div>
+            }
+            else if (!string.IsNullOrWhiteSpace(_loadError))
+            {
+                <div class="alert alert-danger">@_loadError</div>
+            }
+            else if (_currentWord is null)
+            {
+                <div class="alert alert-warning">Seçilen seviye için kelime bulunamadı.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-3 hangman-card">
+                    <div class="card-body keyboard-capture" tabindex="0" @onkeydown="OnKeyDown">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <span class="badge bg-primary me-2">@CurrentLevel</span>
+                                <span class="badge bg-secondary text-uppercase">@_currentWord.Domain</span>
+                            </div>
+                            <div class="text-muted small">
+                                Yanlış: @_wrongCount / @MaxWrong
+                            </div>
+                        </div>
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-5">
+                                <div class="hangman-stage">
+                                    <svg viewBox="0 0 200 260" class="hangman-svg" role="img" aria-label="Adam asmaca">
+                                        <line x1="20" y1="240" x2="180" y2="240" class="gallow"></line>
+                                        <line x1="60" y1="240" x2="60" y2="20" class="gallow"></line>
+                                        <line x1="60" y1="20" x2="140" y2="20" class="gallow"></line>
+                                        <line x1="140" y1="20" x2="140" y2="50" class="gallow"></line>
+
+                                        <circle cx="140" cy="70" r="20" class="part @GetPartClass(1)"></circle>
+                                        <line x1="140" y1="90" x2="140" y2="150" class="part @GetPartClass(2)"></line>
+                                        <line x1="140" y1="110" x2="115" y2="130" class="part @GetPartClass(3)"></line>
+                                        <line x1="140" y1="110" x2="165" y2="130" class="part @GetPartClass(4)"></line>
+                                        <line x1="140" y1="150" x2="120" y2="190" class="part @GetPartClass(5)"></line>
+                                        <line x1="140" y1="150" x2="160" y2="190" class="part @GetPartClass(6)"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="hint-panel mb-3">
+                                    <div class="small text-muted">İpucu</div>
+                                    <div class="fw-semibold">
+                                        @(_showHint ? _currentWord.Turkish : "Gizli (butona tıkla)")
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary mt-2"
+                                            @onclick="ToggleHint"
+                                            disabled="@_showHint">
+                                        İpucunu göster
+                                    </button>
+                                </div>
+
+                                <div class="word-display mb-3">
+                                    @foreach (var letter in DisplayLetters)
+                                    {
+                                        <span class="word-slot">@letter</span>
+                                    }
+                                </div>
+
+                                <div class="keyboard">
+                                    @foreach (var key in _alphabet)
+                                    {
+                                        <button class="btn btn-sm @GetKeyClass(key)"
+                                                @onclick="() => GuessLetter(key)"
+                                                disabled="@IsKeyDisabled(key)">
+                                            @key
+                                        </button>
+                                    }
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    Klavye kullanmak icin bu karti tiklayip harf yazabilirsin.
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(_message))
+                                {
+                                    <div class="alert @(_isWin ? "alert-success" : "alert-danger") mt-3">
+                                        @_message
+                                    </div>
+                                    <button class="btn btn-primary" @onclick="NextQuestion">Yeni kelime</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-lg-4">
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <h5 class="card-title">Seviye Akışı</h5>
+                    <p class="card-text small text-muted">
+                        Seviye sırası: A1 → A2 → B1 → B2 → C1. Kazanınca seviye artar, kaybedince düşer.
+                    </p>
+                    <ul class="list-unstyled small mb-0">
+                        <li><strong>Başlangıç:</strong> A1</li>
+                        <li><strong>Kazan:</strong> Seviye +1</li>
+                        <li><strong>Kaybet:</strong> Seviye -1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly string[] LevelOrder = { "A1", "A2", "B1", "B2", "C1" };
+    private const int MaxWrong = 6;
+    private readonly Random _random = new();
+    private readonly char[] _alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+    private List<WordEntry> _words = new();
+    private List<string> _availableLevels = new();
+    private WordEntry? _currentWord;
+    private bool _isLoading = true;
+    private string? _loadError;
+    private int _levelIndex;
+    private int _wrongCount;
+    private HashSet<char> _guessed = new();
+    private bool _isWin;
+    private bool _showHint;
+    private string? _message;
+
+    private string CurrentLevel => _availableLevels.Count == 0 ? "A1" : _availableLevels[_levelIndex];
+    private string CurrentAnswer => _currentWord?.English ?? string.Empty;
+    private IEnumerable<string> DisplayLetters => CurrentAnswer
+        .Select(ch => ch == '-' ? "-" : _guessed.Contains(char.ToUpperInvariant(ch)) ? ch.ToString().ToUpperInvariant() : "_");
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _words = await Http.GetFromJsonAsync<List<WordEntry>>("data/wordlist.json") ?? new List<WordEntry>();
+            _availableLevels = LevelOrder.Where(level => _words.Any(word => word.Level == level)).ToList();
+            _levelIndex = 0;
+            NextQuestion();
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Veri yüklenemedi: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NextQuestion()
+    {
+        if (_availableLevels.Count == 0)
+        {
+            _currentWord = null;
+            return;
+        }
+
+        var pool = _words.Where(word => word.Level == CurrentLevel).ToList();
+        if (pool.Count == 0)
+        {
+            _currentWord = null;
+            return;
+        }
+
+        _currentWord = pool[_random.Next(pool.Count)];
+        _wrongCount = 0;
+        _guessed = new HashSet<char>();
+        _isWin = false;
+        _message = null;
+        _showHint = false;
+    }
+
+    private void ToggleHint()
+    {
+        _showHint = true;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(args.Key))
+        {
+            return;
+        }
+
+        var key = args.Key.ToUpperInvariant();
+        if (key.Length == 1 && key[0] >= 'A' && key[0] <= 'Z')
+        {
+            GuessLetter(key[0]);
+        }
+    }
+
+    private void GuessLetter(char letter)
+    {
+        if (_currentWord is null || _message is not null)
+        {
+            return;
+        }
+
+        var normalized = char.ToUpperInvariant(letter);
+        if (_guessed.Contains(normalized))
+        {
+            return;
+        }
+
+        _guessed.Add(normalized);
+
+        if (!CurrentAnswer.ToUpperInvariant().Contains(normalized))
+        {
+            _wrongCount++;
+            if (_wrongCount >= MaxWrong)
+            {
+                _message = $"Kaybettin. Doğru cevap: {CurrentAnswer.ToUpperInvariant()}";
+                MoveLevel(-1);
+            }
+        }
+        else
+        {
+            var allRevealed = CurrentAnswer
+                .Where(ch => ch != '-')
+                .All(ch => _guessed.Contains(char.ToUpperInvariant(ch)));
+            if (allRevealed)
+            {
+                _isWin = true;
+                _message = "Tebrikler, kazandın!";
+                MoveLevel(1);
+            }
+        }
+    }
+
+    private void MoveLevel(int delta)
+    {
+        if (_availableLevels.Count == 0)
+        {
+            return;
+        }
+
+        var next = _levelIndex + delta;
+        if (next < 0)
+        {
+            _levelIndex = 0;
+            return;
+        }
+
+        if (next >= _availableLevels.Count)
+        {
+            _levelIndex = _availableLevels.Count - 1;
+            return;
+        }
+
+        _levelIndex = next;
+    }
+
+    private string GetPartClass(int partIndex) => _wrongCount >= partIndex ? "shown" : "hidden";
+
+    private string GetKeyClass(char letter)
+    {
+        if (_guessed.Contains(letter))
+        {
+            var correct = CurrentAnswer.ToUpperInvariant().Contains(letter);
+            return correct ? "btn-success" : "btn-outline-danger";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private bool IsKeyDisabled(char letter) => _message is not null || _guessed.Contains(letter);
+
+    private sealed class WordEntry
+    {
+        public string Level { get; set; } = "A1";
+        public string Domain { get; set; } = "general";
+        public string English { get; set; } = string.Empty;
+        public string Turkish { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .hangman-card {
+        background: radial-gradient(circle at 20% 20%, rgba(255, 235, 200, 0.4), transparent 55%),
+                    radial-gradient(circle at 80% 10%, rgba(200, 230, 255, 0.35), transparent 50%),
+                    #ffffff;
+    }
+
+    .hangman-stage {
+        background: linear-gradient(160deg, #fff7e6 0%, #f1f5ff 100%);
+        border-radius: 16px;
+        padding: 16px;
+        min-height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+    .hangman-svg {
+        width: 100%;
+        max-width: 240px;
+        height: auto;
+    }
+
+    .gallow {
+        stroke: #2b2b2b;
+        stroke-width: 6px;
+        stroke-linecap: round;
+    }
+
+    .part {
+        stroke: #d14b4b;
+        stroke-width: 5px;
+        stroke-linecap: round;
+        fill: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        transform-origin: center;
+    }
+
+    .part.hidden {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+
+    .part.shown {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .word-display {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .hint-panel {
+        background: #f7f8fb;
+        border-radius: 12px;
+        padding: 12px 14px;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .word-slot {
+        width: 32px;
+        text-align: center;
+        border-bottom: 2px solid #1b1b1b;
+        padding-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .keyboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+        gap: 6px;
+    }
+
+    .keyboard .btn {
+        font-weight: 600;
+    }
+
+    .keyboard-capture:focus {
+        outline: 2px solid rgba(13, 110, 253, 0.4);
+        outline-offset: 4px;
+        border-radius: 12px;
+    }
+</style>

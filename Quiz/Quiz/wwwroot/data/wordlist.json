@@ -1,0 +1,112 @@
+[
+  { "level": "A1", "domain": "general", "english": "person", "turkish": "kişi" },
+  { "level": "A1", "domain": "general", "english": "place", "turkish": "yer" },
+  { "level": "A1", "domain": "general", "english": "thing", "turkish": "şey" },
+  { "level": "A1", "domain": "general", "english": "child", "turkish": "çocuk" },
+  { "level": "A1", "domain": "general", "english": "parent", "turkish": "ebeveyn" },
+  { "level": "A1", "domain": "general", "english": "teacher", "turkish": "öğretmen" },
+  { "level": "A1", "domain": "general", "english": "student", "turkish": "öğrenci" },
+  { "level": "A1", "domain": "general", "english": "food", "turkish": "yemek" },
+  { "level": "A1", "domain": "general", "english": "drink", "turkish": "içmek" },
+  { "level": "A1", "domain": "general", "english": "happy", "turkish": "mutlu" },
+
+  { "level": "A1", "domain": "daily", "english": "bathroom", "turkish": "banyo" },
+  { "level": "A1", "domain": "daily", "english": "kitchen", "turkish": "mutfak" },
+  { "level": "A1", "domain": "daily", "english": "market", "turkish": "market" },
+  { "level": "A1", "domain": "daily", "english": "park", "turkish": "park" },
+  { "level": "A1", "domain": "daily", "english": "doctor", "turkish": "doktor" },
+  { "level": "A1", "domain": "daily", "english": "nurse", "turkish": "hemşire" },
+  { "level": "A1", "domain": "daily", "english": "call", "turkish": "aramak" },
+  { "level": "A1", "domain": "daily", "english": "clean", "turkish": "temizlemek" },
+
+  { "level": "A1", "domain": "travel", "english": "bus stop", "turkish": "otobüs durağı" },
+  { "level": "A1", "domain": "travel", "english": "taxi", "turkish": "taksi" },
+  { "level": "A1", "domain": "travel", "english": "ticket", "turkish": "bilet" },
+  { "level": "A1", "domain": "travel", "english": "trip", "turkish": "gezi" },
+
+  { "level": "A1", "domain": "gaming", "english": "start", "turkish": "başlamak" },
+  { "level": "A1", "domain": "gaming", "english": "finish", "turkish": "bitirmek" },
+  { "level": "A1", "domain": "gaming", "english": "score", "turkish": "puan" },
+
+  { "level": "A1", "domain": "business", "english": "office", "turkish": "ofis" },
+  { "level": "A1", "domain": "business", "english": "meeting", "turkish": "toplantı" },
+  { "level": "A1", "domain": "business", "english": "email", "turkish": "e-posta" },
+
+  { "level": "A1", "domain": "official", "english": "police", "turkish": "polis" },
+  { "level": "A1", "domain": "official", "english": "hospital", "turkish": "hastane" },
+
+  { "level": "A2", "domain": "general", "english": "information", "turkish": "bilgi" },
+  { "level": "A2", "domain": "general", "english": "history", "turkish": "tarih" },
+  { "level": "A2", "domain": "general", "english": "future", "turkish": "gelecek" },
+  { "level": "A2", "domain": "general", "english": "example", "turkish": "örnek" },
+  { "level": "A2", "domain": "general", "english": "reason", "turkish": "sebep" },
+  { "level": "A2", "domain": "general", "english": "answer", "turkish": "cevap" },
+
+  { "level": "A2", "domain": "daily", "english": "exercise", "turkish": "egzersiz" },
+  { "level": "A2", "domain": "daily", "english": "routine", "turkish": "rutin" },
+  { "level": "A2", "domain": "daily", "english": "holiday", "turkish": "tatil" },
+  { "level": "A2", "domain": "daily", "english": "shopping", "turkish": "alışveriş" },
+
+  { "level": "A2", "domain": "travel", "english": "passport", "turkish": "pasaport" },
+  { "level": "A2", "domain": "travel", "english": "reservation", "turkish": "rezervasyon" },
+  { "level": "A2", "domain": "travel", "english": "luggage", "turkish": "bagaj" },
+  { "level": "A2", "domain": "travel", "english": "tourist", "turkish": "turist" },
+
+  { "level": "A2", "domain": "gaming", "english": "level", "turkish": "seviye" },
+  { "level": "A2", "domain": "gaming", "english": "enemy", "turkish": "düşman" },
+  { "level": "A2", "domain": "gaming", "english": "power", "turkish": "güç" },
+
+  { "level": "A2", "domain": "business", "english": "company", "turkish": "şirket" },
+  { "level": "A2", "domain": "business", "english": "customer", "turkish": "müşteri" },
+  { "level": "A2", "domain": "business", "english": "manager", "turkish": "yönetici" },
+  { "level": "A2", "domain": "business", "english": "salary", "turkish": "maaş" },
+
+  { "level": "A2", "domain": "official", "english": "application", "turkish": "başvuru" },
+  { "level": "A2", "domain": "official", "english": "certificate", "turkish": "sertifika" },
+  { "level": "A2", "domain": "official", "english": "appointment", "turkish": "randevu" },
+
+  { "level": "B1", "domain": "software", "english": "code", "turkish": "kod" },
+  { "level": "B1", "domain": "software", "english": "database", "turkish": "veritabanı" },
+  { "level": "B1", "domain": "software", "english": "server", "turkish": "sunucu" },
+  { "level": "B1", "domain": "software", "english": "client", "turkish": "istemci" },
+  { "level": "B1", "domain": "software", "english": "bug", "turkish": "hata" },
+  { "level": "B1", "domain": "software", "english": "feature", "turkish": "özellik" },
+  { "level": "B1", "domain": "software", "english": "update", "turkish": "güncelleme" },
+  { "level": "B1", "domain": "software", "english": "backup", "turkish": "yedek" },
+  { "level": "B1", "domain": "software", "english": "security", "turkish": "güvenlik" },
+  { "level": "B1", "domain": "software", "english": "network", "turkish": "ağ" },
+
+  { "level": "B1", "domain": "business", "english": "contract", "turkish": "sözleşme" },
+  { "level": "B1", "domain": "business", "english": "budget", "turkish": "bütçe" },
+  { "level": "B1", "domain": "business", "english": "deadline", "turkish": "son teslim tarihi" },
+  { "level": "B1", "domain": "business", "english": "promotion", "turkish": "terfi" },
+  { "level": "B1", "domain": "business", "english": "training", "turkish": "eğitim" },
+
+  { "level": "B2", "domain": "software", "english": "architecture", "turkish": "mimari" },
+  { "level": "B2", "domain": "software", "english": "deployment", "turkish": "yayınlama" },
+  { "level": "B2", "domain": "software", "english": "integration", "turkish": "entegrasyon" },
+  { "level": "B2", "domain": "software", "english": "optimization", "turkish": "optimizasyon" },
+  { "level": "B2", "domain": "software", "english": "scalability", "turkish": "ölçeklenebilirlik" },
+  { "level": "B2", "domain": "software", "english": "performance", "turkish": "performans" },
+  { "level": "B2", "domain": "software", "english": "framework", "turkish": "çatı" },
+  { "level": "B2", "domain": "software", "english": "repository", "turkish": "depo" },
+  { "level": "B2", "domain": "software", "english": "pipeline", "turkish": "iş hattı" },
+
+  { "level": "B2", "domain": "business", "english": "strategy", "turkish": "strateji" },
+  { "level": "B2", "domain": "business", "english": "negotiation", "turkish": "müzakere" },
+  { "level": "B2", "domain": "business", "english": "investment", "turkish": "yatırım" },
+  { "level": "B2", "domain": "business", "english": "revenue", "turkish": "gelir" },
+
+  { "level": "C1", "domain": "software", "english": "maintainability", "turkish": "bakım yapılabilirlik" },
+  { "level": "C1", "domain": "software", "english": "interoperability", "turkish": "birlikte çalışabilirlik" },
+  { "level": "C1", "domain": "software", "english": "refactoring", "turkish": "yeniden düzenleme" },
+  { "level": "C1", "domain": "software", "english": "concurrency", "turkish": "eşzamanlılık" },
+  { "level": "C1", "domain": "software", "english": "distributed", "turkish": "dağıtık" },
+
+  { "level": "C1", "domain": "business", "english": "governance", "turkish": "yönetişim" },
+  { "level": "C1", "domain": "business", "english": "compliance", "turkish": "uyumluluk" },
+  { "level": "C1", "domain": "business", "english": "acquisition", "turkish": "satın alma" },
+
+  { "level": "C1", "domain": "official", "english": "legislation", "turkish": "mevzuat" },
+  { "level": "C1", "domain": "official", "english": "jurisdiction", "turkish": "yargı yetkisi" }
+]

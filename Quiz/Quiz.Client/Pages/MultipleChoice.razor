@@ -1,0 +1,236 @@
+﻿@page "/multiple-choice"
+@rendermode InteractiveWebAssembly
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>Coktan Secmeli Quiz</PageTitle>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-2">Coktan Secmeli Quiz</h1>
+            <p class="text-muted mb-4">
+                Dogru cevapta seviye artar, yanlista seviye duser. Hedef C1.
+            </p>
+
+            @if (_isLoading)
+            {
+                <div class="alert alert-info">Veri yukleniyor...</div>
+            }
+            else if (!string.IsNullOrWhiteSpace(_loadError))
+            {
+                <div class="alert alert-danger">@_loadError</div>
+            }
+            else if (_currentWord is null)
+            {
+                <div class="alert alert-warning">Secilen seviye icin kelime bulunamadi.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <span class="badge bg-primary me-2">@CurrentLevel</span>
+                                <span class="badge bg-secondary text-uppercase">@_currentWord.Domain</span>
+                            </div>
+                            <div class="text-muted small">
+                                Dogru: @_correctCount | Yanlis: @_wrongCount
+                            </div>
+                        </div>
+
+                        <h2 class="mb-4">@_currentWord.English</h2>
+
+                        <div class="list-group">
+                            @foreach (var option in _options)
+                            {
+                                <button class="list-group-item list-group-item-action @GetOptionClass(option)"
+                                        @onclick="() => SelectOption(option)"
+                                        disabled="@_isAnswered">
+                                    @option
+                                </button>
+                            }
+                        </div>
+
+                        @if (_isAnswered)
+                        {
+                            <div class="mt-3">
+                                <div class="alert @(_isCorrect ? "alert-success" : "alert-danger") mb-2">
+                                    @(_isCorrect ? "Dogru!" : $"Yanlis. Dogru cevap: {_currentWord.Turkish}")
+                                </div>
+                                <button class="btn btn-primary" @onclick="NextQuestion">Sonraki soru</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-lg-4">
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <h5 class="card-title">Seviye Akisi</h5>
+                    <p class="card-text small text-muted">
+                        Seviye sirasi: A1 → A2 → B1 → B2 → C1. Her cevap sonrasi seviye bir adim degisir.
+                    </p>
+                    <ul class="list-unstyled small mb-0">
+                        <li><strong>Baslangic:</strong> A1</li>
+                        <li><strong>Dogru:</strong> Seviye +1</li>
+                        <li><strong>Yanlis:</strong> Seviye -1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly string[] LevelOrder = { "A1", "A2", "B1", "B2", "C1" };
+    private readonly Random _random = new();
+    private List<WordEntry> _words = new();
+    private List<string> _availableLevels = new();
+    private List<string> _options = new();
+    private WordEntry? _currentWord;
+    private bool _isLoading = true;
+    private bool _isAnswered;
+    private bool _isCorrect;
+    private string? _selectedOption;
+    private string? _loadError;
+    private int _levelIndex;
+    private int _correctCount;
+    private int _wrongCount;
+
+    private string CurrentLevel => _availableLevels.Count == 0 ? "A1" : _availableLevels[_levelIndex];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _words = await Http.GetFromJsonAsync<List<WordEntry>>("data/wordlist.json") ?? new List<WordEntry>();
+            _availableLevels = LevelOrder.Where(level => _words.Any(word => word.Level == level)).ToList();
+            _levelIndex = 0;
+            NextQuestion();
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Veri yuklenemedi: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SelectOption(string option)
+    {
+        if (_currentWord is null || _isAnswered)
+        {
+            return;
+        }
+
+        _selectedOption = option;
+        _isAnswered = true;
+        _isCorrect = string.Equals(option, _currentWord.Turkish, StringComparison.OrdinalIgnoreCase);
+
+        if (_isCorrect)
+        {
+            _correctCount++;
+            if (_levelIndex < _availableLevels.Count - 1)
+            {
+                _levelIndex++;
+            }
+        }
+        else
+        {
+            _wrongCount++;
+            if (_levelIndex > 0)
+            {
+                _levelIndex--;
+            }
+        }
+    }
+
+    private void NextQuestion()
+    {
+        if (_availableLevels.Count == 0)
+        {
+            _currentWord = null;
+            return;
+        }
+
+        var pool = _words.Where(word => word.Level == CurrentLevel).ToList();
+        if (pool.Count == 0)
+        {
+            _currentWord = null;
+            return;
+        }
+
+        _currentWord = pool[_random.Next(pool.Count)];
+        _options = BuildOptions(_currentWord, pool);
+        _isAnswered = false;
+        _isCorrect = false;
+        _selectedOption = null;
+    }
+
+    private List<string> BuildOptions(WordEntry correct, List<WordEntry> levelPool)
+    {
+        var options = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { correct.Turkish };
+        var candidates = levelPool
+            .Where(word => !string.Equals(word.English, correct.English, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(_ => _random.Next())
+            .Select(word => word.Turkish)
+            .ToList();
+
+        foreach (var candidate in candidates)
+        {
+            if (options.Count >= 4)
+            {
+                break;
+            }
+
+            options.Add(candidate);
+        }
+
+        if (options.Count < 4)
+        {
+            foreach (var candidate in _words.OrderBy(_ => _random.Next()).Select(word => word.Turkish))
+            {
+                if (options.Count >= 4)
+                {
+                    break;
+                }
+
+                options.Add(candidate);
+            }
+        }
+
+        return options.OrderBy(_ => _random.Next()).ToList();
+    }
+
+    private string GetOptionClass(string option)
+    {
+        if (!_isAnswered || _currentWord is null)
+        {
+            return string.Empty;
+        }
+
+        if (string.Equals(option, _currentWord.Turkish, StringComparison.OrdinalIgnoreCase))
+        {
+            return "active";
+        }
+
+        if (string.Equals(option, _selectedOption, StringComparison.OrdinalIgnoreCase))
+        {
+            return "list-group-item-danger";
+        }
+
+        return "list-group-item-light";
+    }
+
+    private sealed class WordEntry
+    {
+        public string Level { get; set; } = "A1";
+        public string Domain { get; set; } = "general";
+        public string English { get; set; } = string.Empty;
+        public string Turkish { get; set; } = string.Empty;
+    }
+}

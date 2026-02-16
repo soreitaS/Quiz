@@ -1,0 +1,13 @@
+﻿services:
+  quiz:
+    image: quiz
+    build:
+      context: .
+      dockerfile: Quiz/Quiz/Dockerfile
+
+  quiz.client:
+    image: quiz.client
+    build:
+      context: .
+      dockerfile: Quiz/Quiz.Client/Dockerfile
+
